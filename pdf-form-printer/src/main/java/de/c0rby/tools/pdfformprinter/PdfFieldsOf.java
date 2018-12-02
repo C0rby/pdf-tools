@@ -12,22 +12,27 @@ import java.util.List;
 public class PdfFieldsOf {
 
     private final PDDocument pdDocument;
-    private final List<PdfFormField> fields = new ArrayList<>();
+    private List<PdfFormField> fields; 
 
     public PdfFieldsOf(final PDDocument pdDocument) {
         this.pdDocument = pdDocument;
     }
 
     public List<PdfFormField> asList() {
-        if(fields.isEmpty()) {
+        if(fields == null) {
             this.extractFields();
         }
         return fields;
     }
 
-    private synchronized void extractFields() {
+    private void extractFields() {
+	this.fields = new ArrayList<>();
+
         final PDDocumentCatalog documentCatalog = pdDocument.getDocumentCatalog();
         final PDAcroForm acroForm = documentCatalog.getAcroForm();
+	if(acroForm == null) {
+          return;
+        }
 
         final Iterator<PDField> fieldIterator = acroForm.getFieldIterator();
         while(fieldIterator.hasNext()) {
@@ -35,7 +40,7 @@ public class PdfFieldsOf {
             final String name = field.getFullyQualifiedName();
             final String value = field.getValueAsString();
             final String type = field.getFieldType();
-            fields.add(new PdfFormField(type, name, value));
+            this.fields.add(new PdfFormField(type, name, value));
         }
     }
 }
